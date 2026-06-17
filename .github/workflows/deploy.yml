@@ -1,0 +1,55 @@
+name: Deploy via FTP
+
+# Build the app and upload the build output to the server over FTPS.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+# Avoid overlapping deploys clobbering each other.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # --- BUILD --------------------------------------------------------
+      # Adjust these to match your stack. Defaults assume a Node app whose
+      # build command emits static files into ./dist.
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+      # ------------------------------------------------------------------
+
+      - name: Deploy to FTP server
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          # Switch to "ftp" if your host does not support FTPS, or
+          # "ftps-legacy" for older implicit-TLS servers.
+          protocol: ftps
+          port: ${{ vars.FTP_PORT || 21 }}
+          # Trailing slash matters: uploads the *contents* of ./dist
+          local-dir: ./dist/
+          # Server root of the FTP account.
+          server-dir: ./
+          # Don't ship CI/VCS cruft if local-dir is ever widened.
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
