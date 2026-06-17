@@ -1,8 +1,7 @@
 name: Deploy via FTP
 
-# Build a frontend app and upload its build output to the server over FTPS.
-# NOTE: This repo currently holds a Xano backend (no frontend yet), so the
-# build/deploy steps below SKIP automatically until a package.json is added.
+# Build the frontend app (frontend/) and upload its build output over FTPS.
+# Skips automatically if frontend/package.json is ever missing.
 on:
   push:
     branches: [main]
@@ -20,14 +19,22 @@ jobs:
         uses: actions/checkout@v4
 
       # Detect whether there's actually a frontend app to build/deploy yet.
-      - name: Detect app
+      - name: Detect app & config
         id: detect
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
         run: |
-          if [ -f package.json ]; then
+          if [ -f frontend/package.json ]; then
             echo "app=true" >> "$GITHUB_OUTPUT"
           else
             echo "app=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::No package.json found — nothing to deploy. Add your frontend app to enable this pipeline."
+            echo "::notice::No frontend/package.json found — nothing to deploy."
+          fi
+          if [ -n "$FTP_SERVER" ]; then
+            echo "ftp=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ftp=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::FTP secrets not set — app will build but not upload. Set FTP_SERVER/FTP_USERNAME/FTP_PASSWORD to enable deploys."
           fi
 
       # --- BUILD (only runs once a frontend app exists) -----------------
@@ -39,16 +46,20 @@ jobs:
 
       - name: Install dependencies
         if: steps.detect.outputs.app == 'true'
+        working-directory: frontend
         run: |
           if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
       - name: Build
         if: steps.detect.outputs.app == 'true'
+        working-directory: frontend
+        env:
+          VITE_XANO_BASE_URL: ${{ vars.VITE_XANO_BASE_URL }}
         run: npm run build
       # ------------------------------------------------------------------
 
       - name: Deploy to FTP server
-        if: steps.detect.outputs.app == 'true'
+        if: steps.detect.outputs.app == 'true' && steps.detect.outputs.ftp == 'true'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -58,9 +69,8 @@ jobs:
           # older implicit-TLS servers.
           protocol: ftps
           port: ${{ vars.FTP_PORT || 21 }}
-          # Trailing slash matters: uploads the *contents* of ./dist.
-          # Change to ./build/ (CRA) or ./out/ (Next export) to match your app.
-          local-dir: ./dist/
+          # Trailing slash matters: uploads the *contents* of frontend/dist.
+          local-dir: ./frontend/dist/
           server-dir: ./
           exclude: |
             **/.git*
