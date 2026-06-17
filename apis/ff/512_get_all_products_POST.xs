@@ -1,0 +1,35 @@
+query getAllProducts verb=POST {
+  api_group = "ff"
+  auth = "user"
+
+  input {
+  }
+
+  stack {
+    db.query products {
+      sort = {products.product_name: "asc"}
+      return = {type: "list"}
+      addon = [
+        {
+          name : "myDocuments"
+          input: {myDocuments_id: $output.$this}
+          addon: [
+            {
+              name : "documents"
+              input: {documents_id: $output.document}
+              as   : "document"
+            }
+          ]
+          as   : "certificates"
+        }
+        {
+          name : "products"
+          input: {products_id: $output.$this}
+          as   : "third_party_processors"
+        }
+      ]
+    } as $products1
+  }
+
+  response = $products1
+}

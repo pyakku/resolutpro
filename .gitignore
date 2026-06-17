@@ -3,3 +3,27 @@
 node_modules/
 .env
 .env.*
+
+# --- Files with hardcoded secrets (OpenAI / Chargebee keys) — DO NOT COMMIT ---
+# Excluded from the public repo. Move these keys to Xano env vars to re-include.
+/apis/billing/416_bill_POST.xs
+/apis/companies_and_subsidiaries/215_business_dev_sent_invites_POST.xs
+/apis/email_logs/339_summarize_POST.xs
+/apis/ff/485_check_subscription_status_POST.xs
+/apis/ff_p_3_dashboard/542_get_invoice_POST.xs
+/apis/ff_p_3_dashboard/653_get_subscription_details_POST.xs
+/apis/p_3_dashboard/238_update_business_dev_invite_with_company_POST.xs
+/apis/subscriptions/179_update_addon_POST.xs
+/apis/subscriptions/181_change_to_free_POST.xs
+/functions/15_change_subscription.xs
+/functions/22_business_dev_sent_invites_fn.xs
+/functions/23_billingbymonthyear.xs
+/functions/25_get_detaild_from_hosted_page.xs
+/functions/26_create_subscription_free_plan_forretry.xs
+/functions/27_project_billing.xs
+/functions/33_create_subscription_beta_2025.xs
+/functions/3_get_subscription_from_hosting_page.xs
+/functions/5_create_subscription_free_plan.xs
+/functions/6_subscription_details.xs
+/functions/7_create_subscription_email_signup.xs
+/functions/8_addon_to_subscription.xs
