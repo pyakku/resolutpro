@@ -5,11 +5,11 @@
   --text: #1a2238;
   --muted: #6b7488;
   --border: #e3e7ef;
-  --brand: #3b5bff;
-  --brand-dark: #2b46d6;
+  --brand: #5e90c0;
+  --brand-dark: #436f99;
   --danger-bg: #fdeceb;
   --danger-text: #b3261e;
-  --ring: rgba(59, 91, 255, 0.18);
+  --ring: rgba(94, 144, 192, 0.22);
 }
 
 * {
