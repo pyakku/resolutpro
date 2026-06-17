@@ -42,7 +42,7 @@ export default function Login({ onSuccess }: LoginProps) {
           <span className="brand-name">resolut<span className="brand-dot">.pro</span></span>
         </div>
 
-        <h1 className="auth-title">Sign in</h1>
+        <h1 className="auth-title">Login</h1>
         <p className="auth-subtitle">Welcome back. Please enter your details.</p>
 
         {error && (
@@ -91,7 +91,7 @@ export default function Login({ onSuccess }: LoginProps) {
         </label>
 
         <button type="submit" className="submit-btn" disabled={submitting}>
-          {submitting ? "Signing in…" : "Sign in"}
+          {submitting ? "Logging in…" : "Login"}
         </button>
       </form>
 
