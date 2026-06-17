@@ -1,0 +1,50 @@
+name: Deploy to Cloudflare Pages
+
+# Build the frontend and deploy it to the "resolutpro" Cloudflare Pages project
+# on every push to main. Needs:
+#   - secret CLOUDFLARE_API_TOKEN   (Pages: Edit permission)
+#   - variable CLOUDFLARE_ACCOUNT_ID
+#   - variable VITE_XANO_BASE_URL   (so login points at your Xano backend)
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/deploy-pages.yml"
+  workflow_dispatch: {}
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: frontend
+        env:
+          VITE_XANO_BASE_URL: ${{ vars.VITE_XANO_BASE_URL }}
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy frontend/dist --project-name=resolutpro --branch=main
