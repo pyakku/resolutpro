@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { errorMessage, getMe, login } from "../lib/api";
 import { useAuthStore } from "../store/auth";
 import { LOGO } from "../lib/brand";
@@ -69,7 +69,6 @@ export default function Login() {
     <main className="min-h-screen flex">
       {/* ── Left brand panel (desktop only) ── */}
       <div className="hidden lg:flex lg:w-[52%] bg-[#1d2428] flex-col items-center justify-center p-16 relative overflow-hidden select-none">
-        {/* Decorative rings */}
         <div className="absolute -top-32 -left-32 w-[480px] h-[480px] rounded-full border border-white/5" />
         <div className="absolute -bottom-48 -right-48 w-[600px] h-[600px] rounded-full border border-white/5" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full border border-white/[0.03]" />
@@ -141,9 +140,17 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm font-medium text-slate-700">
+                  Password
+                </label>
+                <Link
+                  to="/forgot-password"
+                  className="text-xs text-[#5e90c0] hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -186,6 +193,25 @@ export default function Login() {
               )}
             </button>
           </form>
+
+          <p className="mt-5 text-center text-xs text-slate-400 leading-relaxed">
+            By continuing you agree to our{" "}
+            <Link to="/terms" className="underline hover:text-slate-600">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link to="/privacy" className="underline hover:text-slate-600">
+              Privacy Policy
+            </Link>
+            .
+          </p>
+
+          <p className="mt-5 text-center text-sm text-slate-500">
+            Don't have an account?{" "}
+            <Link to="/sign-up" className="font-medium text-[#5e90c0] hover:underline">
+              Sign up
+            </Link>
+          </p>
 
           <p className="mt-8 text-center text-xs text-slate-400 lg:hidden">
             © {new Date().getFullYear()} resolut.pro

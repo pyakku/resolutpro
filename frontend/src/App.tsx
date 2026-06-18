@@ -14,6 +14,11 @@ export default function App() {
         path="/login"
         element={token ? <Navigate to="/select-company" replace /> : <Login />}
       />
+      {/* Placeholder routes — pages to be built */}
+      <Route path="/forgot-password" element={<Login />} />
+      <Route path="/sign-up" element={<Login />} />
+      <Route path="/terms" element={<Login />} />
+      <Route path="/privacy" element={<Login />} />
 
       <Route element={<ProtectedRoute />}>
         <Route path="/select-company" element={<SelectCompany />} />
