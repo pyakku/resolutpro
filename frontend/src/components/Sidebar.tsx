@@ -102,9 +102,17 @@ export default function Sidebar() {
 
       {/* User */}
       <div className={`flex items-center gap-2.5 px-3 py-3 border-b border-slate-100 ${collapsed ? "justify-center" : ""}`}>
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#D5E8F0] text-[#1d2428] text-xs font-semibold">
-          {userInitials(user?.name, user?.email ?? "?")}
-        </span>
+        {user?.profile_img ? (
+          <img
+            src={user.profile_img}
+            alt=""
+            className="h-8 w-8 shrink-0 rounded-full object-cover"
+          />
+        ) : (
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#D5E8F0] text-[#1d2428] text-xs font-semibold">
+            {userInitials(user?.name, user?.email ?? "?")}
+          </span>
+        )}
         {!collapsed && (
           <div className="min-w-0">
             <p className="truncate text-xs font-semibold text-[#1d2428]">

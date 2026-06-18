@@ -5,6 +5,7 @@ import { useAuthStore } from "./store/auth";
 import Login from "./pages/Login";
 import SelectCompany from "./pages/SelectCompany";
 import Dashboard from "./pages/Dashboard";
+import ComingSoon from "./pages/ComingSoon";
 
 export default function App() {
   const token = useAuthStore((s) => s.token);
@@ -25,10 +26,26 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route path="/select-company" element={<SelectCompany />} />
 
-        {/* Requires token + selected company — AppLayout enforces the company guard */}
+        {/* Requires token + selected company */}
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          {/* Future routes: organisation, contacts, documents, etc. */}
+          {/* Platform Navigation */}
+          <Route path="/organisation" element={<ComingSoon />} />
+          <Route path="/contacts" element={<ComingSoon />} />
+          <Route path="/documents" element={<ComingSoon />} />
+          <Route path="/share-documents" element={<ComingSoon />} />
+          <Route path="/product-analysis" element={<ComingSoon />} />
+          <Route path="/processes" element={<ComingSoon />} />
+          <Route path="/process-maps" element={<ComingSoon />} />
+          <Route path="/assessments" element={<ComingSoon />} />
+          <Route path="/audits" element={<ComingSoon />} />
+          <Route path="/reports" element={<ComingSoon />} />
+          <Route path="/invites" element={<ComingSoon />} />
+          {/* Resources */}
+          <Route path="/regulations" element={<ComingSoon />} />
+          <Route path="/companies" element={<ComingSoon />} />
+          {/* Settings */}
+          <Route path="/settings" element={<ComingSoon />} />
         </Route>
       </Route>
 

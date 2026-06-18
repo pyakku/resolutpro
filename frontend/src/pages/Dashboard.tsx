@@ -215,9 +215,9 @@ export default function Dashboard() {
       </div>
 
       {/* Main grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
         {/* Left column */}
-        <div className="xl:col-span-2 space-y-4">
+        <div className="xl:col-span-3 space-y-4">
           {/* Suppliers */}
           <div className="bg-white rounded-xl border border-slate-200 p-4">
             <div className="flex items-start justify-between mb-4">
@@ -282,7 +282,7 @@ export default function Dashboard() {
         </div>
 
         {/* Right column */}
-        <div className="min-h-[400px]">
+        <div className="xl:col-span-2 min-h-[400px]">
           <OutstandingTasks />
         </div>
       </div>
