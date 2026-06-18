@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AppLayout from "./components/AppLayout";
 import { useAuthStore } from "./store/auth";
 import Login from "./pages/Login";
 import SelectCompany from "./pages/SelectCompany";
@@ -10,19 +11,25 @@ export default function App() {
 
   return (
     <Routes>
+      {/* Public */}
       <Route
         path="/login"
         element={token ? <Navigate to="/select-company" replace /> : <Login />}
       />
-      {/* Placeholder routes — pages to be built */}
       <Route path="/forgot-password" element={<Login />} />
       <Route path="/sign-up" element={<Login />} />
       <Route path="/terms" element={<Login />} />
       <Route path="/privacy" element={<Login />} />
 
+      {/* Requires auth token */}
       <Route element={<ProtectedRoute />}>
         <Route path="/select-company" element={<SelectCompany />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+
+        {/* Requires token + selected company — AppLayout enforces the company guard */}
+        <Route element={<AppLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          {/* Future routes: organisation, contacts, documents, etc. */}
+        </Route>
       </Route>
 
       <Route
