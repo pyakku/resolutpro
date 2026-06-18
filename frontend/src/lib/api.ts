@@ -1,78 +1,70 @@
-// Base URL of the Xano "Default" API group.
-// Find it in Xano: API → Default group → the base URL shown at the top,
-// e.g. https://xjno-rqiq-2v6x.<region>.xano.io/api:SQfzEqGW
-// Set it in frontend/.env as VITE_XANO_BASE_URL.
+import axios, { AxiosError } from "axios";
+import { useAuthStore } from "../store/auth";
+import type { CompanyOption, User } from "./types";
+
+// Base URL of the Xano `resolut_apis` API group. Set in frontend/.env.
 const BASE_URL = import.meta.env.VITE_XANO_BASE_URL ?? "";
 
-const TOKEN_KEY = "resolut.authToken";
+export const api = axios.create({
+  baseURL: BASE_URL,
+  headers: { "Content-Type": "application/json" },
+});
 
-export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
-}
-
-export function setToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token);
-}
-
-export function clearToken(): void {
-  localStorage.removeItem(TOKEN_KEY);
-}
-
-export class ApiError extends Error {
-  status: number;
-  constructor(message: string, status: number) {
-    super(message);
-    this.name = "ApiError";
-    this.status = status;
+// Attach the auth token (read live from the store) to every request.
+api.interceptors.request.use((config) => {
+  const token = useAuthStore.getState().token;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
+  return config;
+});
+
+// On an expired/invalid token, drop the session so guards send the user back
+// to login.
+api.interceptors.response.use(
+  (res) => res,
+  (error: AxiosError) => {
+    if (error.response?.status === 401) {
+      useAuthStore.getState().logout();
+    }
+    return Promise.reject(error);
+  }
+);
+
+/** Turn an Axios/Xano error into a human-readable message. */
+export function errorMessage(err: unknown, fallback = "Something went wrong."): string {
+  if (axios.isAxiosError(err)) {
+    if (!err.response) return "Network error — could not reach the server.";
+    const data = err.response.data as { message?: string } | undefined;
+    if (data?.message) return data.message;
+    if (err.response.status === 401 || err.response.status === 403) {
+      return "Invalid email or password.";
+    }
+  }
+  return fallback;
 }
 
 interface LoginResponse {
   authToken: string;
 }
 
-/**
- * POST auth/login — returns the Xano auth token on success.
- * Mirrors apis/default/1_auth_login_POST.xs.
- */
+/** POST auth/login — returns the Xano auth token. */
 export async function login(email: string, password: string): Promise<string> {
   if (!BASE_URL) {
-    throw new ApiError(
-      "Login is not configured yet. Set VITE_XANO_BASE_URL in frontend/.env.",
-      0
-    );
+    throw new Error("VITE_XANO_BASE_URL is not set. See frontend/.env.example.");
   }
+  const { data } = await api.post<LoginResponse>("/auth/login", { email, password });
+  return data.authToken;
+}
 
-  let res: Response;
-  try {
-    res = await fetch(`${BASE_URL}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-  } catch {
-    throw new ApiError("Network error — could not reach the server.", 0);
-  }
+/** GET auth/me — the currently authenticated user. */
+export async function getMe(): Promise<User> {
+  const { data } = await api.get<User>("/auth/me");
+  return data;
+}
 
-  let body: unknown = null;
-  try {
-    body = await res.json();
-  } catch {
-    /* non-JSON response */
-  }
-
-  if (!res.ok) {
-    const message =
-      (body as { message?: string } | null)?.message ??
-      (res.status === 401 || res.status === 403
-        ? "Invalid email or password."
-        : "Something went wrong. Please try again.");
-    throw new ApiError(message, res.status);
-  }
-
-  const token = (body as LoginResponse | null)?.authToken;
-  if (!token) {
-    throw new ApiError("Unexpected response from server.", res.status);
-  }
-  return token;
+/** GET company_of_current_user_v2_ff — companies the user can access. */
+export async function getCompanies(): Promise<CompanyOption[]> {
+  const { data } = await api.get<CompanyOption[]>("/user/list_companies");
+  return Array.isArray(data) ? data : [];
 }

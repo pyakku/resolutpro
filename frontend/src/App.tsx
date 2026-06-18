@@ -1,42 +1,29 @@
-import { useState } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { useAuthStore } from "./store/auth";
 import Login from "./pages/Login";
-import { clearToken, getToken, setToken } from "./lib/api";
+import SelectCompany from "./pages/SelectCompany";
+import Dashboard from "./pages/Dashboard";
 
 export default function App() {
-  const [token, setTokenState] = useState<string | null>(getToken());
+  const token = useAuthStore((s) => s.token);
 
-  function handleSuccess(newToken: string) {
-    setToken(newToken);
-    setTokenState(newToken);
-  }
+  return (
+    <Routes>
+      <Route
+        path="/login"
+        element={token ? <Navigate to="/select-company" replace /> : <Login />}
+      />
 
-  function handleLogout() {
-    clearToken();
-    setTokenState(null);
-  }
+      <Route element={<ProtectedRoute />}>
+        <Route path="/select-company" element={<SelectCompany />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Route>
 
-  if (token) {
-    // Placeholder until the authenticated app is built out.
-    return (
-      <main className="auth-shell">
-        <div className="auth-card">
-          <div className="brand">
-            <span className="brand-mark">R</span>
-            <span className="brand-name">
-              resolut<span className="brand-dot">.pro</span>
-            </span>
-          </div>
-          <h1 className="auth-title">You're signed in</h1>
-          <p className="auth-subtitle">
-            Authentication succeeded. The dashboard goes here next.
-          </p>
-          <button className="submit-btn" onClick={handleLogout}>
-            Sign out
-          </button>
-        </div>
-      </main>
-    );
-  }
-
-  return <Login onSuccess={handleSuccess} />;
+      <Route
+        path="*"
+        element={<Navigate to={token ? "/select-company" : "/login"} replace />}
+      />
+    </Routes>
+  );
 }

@@ -8314,5 +8314,14 @@
     "staged": false,
     "sha256": "f5485366e3b4a54f2afaa7e266cea3d1ebfe79308b69493a3ea128b31fb200ff",
     "original": "bWlkZGxld2FyZSB0cmlhbCB7CiAgaW5wdXQgewogICAganNvbiB2YXJzCiAgICBlbnVtIHR5cGUgewogICAgICB2YWx1ZXMgPSBbInByZSIsICJwb3N0Il0KICAgIH0KICB9CgogIHN0YWNrIHsKICB9CgogIHJlc3BvbnNlID0gbnVsbAogIHJlc3BvbnNlX3N0cmF0ZWd5ID0gIm1lcmdlIgogIGV4Y2VwdGlvbl9wb2xpY3kgPSAic2lsZW50Igp9"
+  },
+  {
+    "id": 54,
+    "type": "api_group",
+    "path": "apis/resolut_apis/api_group.xs",
+    "status": "unchanged",
+    "staged": false,
+    "sha256": "7a1077cdc298963e821f7a9b9f7d800f7bcf1a9121e27d6deae70957088ea29b",
+    "original": "YXBpX2dyb3VwIHJlc29sdXRfYXBpcyB7CiAgY2Fub25pY2FsID0gIl9ubVIwbG80IgogIHN3YWdnZXIgPSB7dG9rZW46ICJ4UjdqZzdKRWNGekdvSnkyWFhyd1JLRHplWWMifQp9"
   }
 ]
