@@ -1,6 +1,6 @@
 import axios, { AxiosError } from "axios";
 import { useAuthStore } from "../store/auth";
-import type { CompanyOption, User } from "./types";
+import type { CompanyOption, DashboardStats, User } from "./types";
 
 // Base URL of the Xano `resolut_apis` API group. Set in frontend/.env.
 const BASE_URL = import.meta.env.VITE_XANO_BASE_URL ?? "";
@@ -67,4 +67,12 @@ export async function getMe(): Promise<User> {
 export async function getCompanies(): Promise<CompanyOption[]> {
   const { data } = await api.get<CompanyOption[]>("/user/list_companies");
   return Array.isArray(data) ? data : [];
+}
+
+/** GET dashboard/stats/numbers — top-row KPI counts for a company. */
+export async function getDashboardStats(companyId: number): Promise<DashboardStats> {
+  const { data } = await api.get<DashboardStats>("/dashboard/stats/numbers", {
+    params: { company_id: companyId },
+  });
+  return data;
 }

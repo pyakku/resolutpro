@@ -38,6 +38,22 @@ export interface Company {
   [key: string]: unknown;
 }
 
+/** GET dashboard/stats/numbers */
+export interface DashboardStats {
+  processes: number;
+  products: number;
+  documents: number;
+  validatedDocuments: number;
+  rejectedDocuments: number;
+  archivedDocuments: number;
+  audits: number;
+  users: number;
+  contacts: number;
+  certificates: number;
+  policies: number;
+  expiredDocuments: number;
+}
+
 /**
  * GET company_of_current_user_v2_ff returns a list of subscription rows, each
  * decorated with the expanded `company` and a top-level `companyName`.

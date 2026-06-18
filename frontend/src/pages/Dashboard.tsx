@@ -9,7 +9,9 @@ import {
   UserPlus,
   AlertTriangle,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../store/auth";
+import { getDashboardStats } from "../lib/api";
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
 
@@ -157,6 +159,15 @@ function InviteCard() {
 export default function Dashboard() {
   const company = useAuthStore((s) => s.selectedCompany);
 
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ["dashboard-stats", company?.id],
+    queryFn: () => getDashboardStats(company!.id),
+    enabled: !!company?.id,
+  });
+
+  const n = (v: number | undefined) =>
+    statsLoading ? "…" : v !== undefined ? v : "—";
+
   return (
     <div className="space-y-6">
       {/* Page heading */}
@@ -169,46 +180,46 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* Stats row — TODO: wire to API */}
+      {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
         <StatCard
           label="Processes"
-          value="—"
+          value={n(stats?.processes)}
           iconBg="bg-[#D5E8F0]"
           icon={<GitBranch size={18} className="text-[#5e90c0]" />}
         />
         <StatCard
           label="Products"
-          value="—"
+          value={n(stats?.products)}
           iconBg="bg-violet-100"
           icon={<Package size={18} className="text-violet-500" />}
         />
         <StatCard
           label="Documents"
-          value="—"
+          value={n(stats?.documents)}
           iconBg="bg-amber-100"
           icon={<FileText size={18} className="text-amber-500" />}
           sub={[
-            { label: "Active", value: "—" },
-            { label: "Rejected", value: "—" },
-            { label: "Archived", value: "—" },
+            { label: "Active", value: n(stats?.validatedDocuments) },
+            { label: "Rejected", value: n(stats?.rejectedDocuments) },
+            { label: "Archived", value: n(stats?.archivedDocuments) },
           ]}
         />
         <StatCard
           label="Audits"
-          value="—"
+          value={n(stats?.audits)}
           iconBg="bg-emerald-100"
           icon={<CheckSquare size={18} className="text-emerald-500" />}
         />
         <StatCard
           label="Users"
-          value="—"
+          value={n(stats?.users)}
           iconBg="bg-rose-100"
           icon={<Users size={18} className="text-rose-500" />}
         />
         <StatCard
           label="Contacts"
-          value="—"
+          value={n(stats?.contacts)}
           iconBg="bg-indigo-100"
           icon={<Contact size={18} className="text-indigo-500" />}
         />
