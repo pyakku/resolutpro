@@ -4,7 +4,6 @@ name: Deploy to Cloudflare Pages
 # on every push to main. Needs:
 #   - secret CLOUDFLARE_API_TOKEN   (Pages: Edit permission)
 #   - variable CLOUDFLARE_ACCOUNT_ID
-#   - variable VITE_XANO_BASE_URL   (so login points at your Xano backend)
 on:
   push:
     branches: [main]
@@ -39,7 +38,7 @@ jobs:
       - name: Build
         working-directory: frontend
         env:
-          VITE_XANO_BASE_URL: ${{ vars.VITE_XANO_BASE_URL }}
+          VITE_XANO_BASE_URL: https://xjno-rqiq-2v6x.n7.xano.io/api:_nmR0lo4
         run: npm run build
 
       - name: Deploy to Cloudflare Pages
