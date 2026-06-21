@@ -81,7 +81,7 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`${w} shrink-0 flex flex-col bg-white border-r border-slate-200 transition-all duration-200 min-h-screen`}
+      className={`${w} shrink-0 flex flex-col bg-white border-r border-slate-200 transition-all duration-200 h-screen`}
     >
       {/* Logo */}
       <div className="h-14 flex items-center justify-between px-3 border-b border-slate-100">
