@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Search, FileText, AlertTriangle, Loader2 } from "lucide-react";
+import { Search, FileText, AlertTriangle, Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import { useAuthStore } from "../store/auth";
 import { getDocuments } from "../lib/api";
 import { errorMessage } from "../lib/api";
-import type { DocumentStatus, MyDocument } from "../lib/types";
+import type { DocumentSortBy, DocumentStatus, MyDocument, SortDir } from "../lib/types";
 import DocumentModal from "../components/DocumentModal";
 
 // ── Tabs ────────────────────────────────────────────────────────────────────────
@@ -102,6 +102,38 @@ function RowSkeleton() {
   );
 }
 
+// ── Sortable column header ────────────────────────────────────────────────────
+
+function SortHeader({
+  label,
+  col,
+  activeCol,
+  dir,
+  onToggle,
+  className,
+}: {
+  label: string;
+  col: DocumentSortBy;
+  activeCol: DocumentSortBy;
+  dir: SortDir;
+  onToggle: (col: DocumentSortBy) => void;
+  className?: string;
+}) {
+  const active = activeCol === col;
+  return (
+    <button
+      onClick={() => onToggle(col)}
+      className={`flex items-center gap-1 text-left uppercase tracking-wide transition hover:text-[#5e90c0] ${
+        active ? "text-[#5e90c0]" : ""
+      } ${className ?? ""}`}
+    >
+      {label}
+      {active &&
+        (dir === "asc" ? <ChevronUp size={11} /> : <ChevronDown size={11} />)}
+    </button>
+  );
+}
+
 // ── Page ────────────────────────────────────────────────────────────────────────
 
 export default function Documents() {
@@ -109,7 +141,20 @@ export default function Documents() {
   const [status, setStatus] = useState<DocumentStatus>("all");
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<DocumentSortBy>("created");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [openDoc, setOpenDoc] = useState<MyDocument | null>(null);
+
+  // Toggle a column's sort: same column flips direction, a new column starts
+  // descending (newest/Z-A first feels natural for these fields).
+  function toggleSort(col: DocumentSortBy) {
+    if (sortBy === col) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(col);
+      setSortDir("desc");
+    }
+  }
 
   // Debounce the search box → server-side `search` param.
   useEffect(() => {
@@ -126,11 +171,11 @@ export default function Documents() {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["documents", company?.id, status, search],
+    queryKey: ["documents", company?.id, status, search, sortBy, sortDir],
     enabled: !!company?.id,
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
-      getDocuments({ companyId: company!.id, status, search, page: pageParam }),
+      getDocuments({ companyId: company!.id, status, search, sortBy, sortDir, page: pageParam }),
     getNextPageParam: (lastPage) => lastPage.nextPage ?? undefined,
   });
 
@@ -192,13 +237,13 @@ export default function Documents() {
           </div>
         </div>
 
-        {/* Column headers */}
+        {/* Column headers (Name / Issued / Expires are sortable server-side) */}
         <div className="mt-2 grid grid-cols-12 gap-3 border-b border-slate-200 bg-slate-50 px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-          <span className="col-span-3">Name</span>
+          <SortHeader className="col-span-3" label="Name" col="name" activeCol={sortBy} dir={sortDir} onToggle={toggleSort} />
           <span className="col-span-2">Holder</span>
           <span className="col-span-2">Type</span>
-          <span className="col-span-2">Issued</span>
-          <span className="col-span-2">Expires</span>
+          <SortHeader className="col-span-2" label="Issued" col="issued" activeCol={sortBy} dir={sortDir} onToggle={toggleSort} />
+          <SortHeader className="col-span-2" label="Expires" col="expires" activeCol={sortBy} dir={sortDir} onToggle={toggleSort} />
           <span className="col-span-1 text-right">Status</span>
         </div>
 
