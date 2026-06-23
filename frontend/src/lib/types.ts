@@ -69,6 +69,10 @@ export interface CompanyOption {
 
 // ── Documents ──────────────────────────────────────────────────────────────────
 
+/** Server-side sort field + direction for the documents list. */
+export type DocumentSortBy = "name" | "issued" | "expires" | "created";
+export type SortDir = "asc" | "desc";
+
 /** The tab / server-side filter applied to the documents list. */
 export type DocumentStatus =
   | "all"

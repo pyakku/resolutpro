@@ -3,8 +3,10 @@ import { useAuthStore } from "../store/auth";
 import type {
   CompanyOption,
   DashboardStats,
+  DocumentSortBy,
   DocumentStatus,
   DocumentsPage,
+  SortDir,
   User,
   VeritasChatReply,
   VeritasHistoryStatus,
@@ -90,6 +92,8 @@ export interface GetDocumentsParams {
   companyId: number;
   status: DocumentStatus;
   search?: string;
+  sortBy?: DocumentSortBy;
+  sortDir?: SortDir;
   page?: number;
   perPage?: number;
 }
@@ -102,6 +106,8 @@ export async function getDocuments({
   companyId,
   status,
   search,
+  sortBy = "created",
+  sortDir = "desc",
   page = 1,
   perPage = 20,
 }: GetDocumentsParams): Promise<DocumentsPage> {
@@ -110,6 +116,8 @@ export async function getDocuments({
       company_id: companyId,
       status,
       search: search?.trim() || undefined,
+      sort_by: sortBy,
+      sort_dir: sortDir,
       page,
       per_page: perPage,
     },
