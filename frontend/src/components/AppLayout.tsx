@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import { LifeBuoy, ArrowLeftRight } from "lucide-react";
 import Sidebar from "./Sidebar";
+import VeritasAssistant from "./veritas/VeritasAssistant";
 import { useAuthStore } from "../store/auth";
 
 export default function AppLayout() {
@@ -67,6 +68,9 @@ export default function AppLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Floating AI assistant */}
+      <VeritasAssistant />
     </div>
   );
 }
