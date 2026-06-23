@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import SelectCompany from "./pages/SelectCompany";
 import Dashboard from "./pages/Dashboard";
 import Documents from "./pages/Documents";
+import Processes from "./pages/Processes";
 import ComingSoon from "./pages/ComingSoon";
 
 export default function App() {
@@ -36,7 +37,7 @@ export default function App() {
           <Route path="/documents" element={<Documents />} />
           <Route path="/share-documents" element={<ComingSoon />} />
           <Route path="/product-analysis" element={<ComingSoon />} />
-          <Route path="/processes" element={<ComingSoon />} />
+          <Route path="/processes" element={<Processes />} />
           <Route path="/process-maps" element={<ComingSoon />} />
           <Route path="/assessments" element={<ComingSoon />} />
           <Route path="/audits" element={<ComingSoon />} />

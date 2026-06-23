@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
-import { Send, Loader2, History, Sparkles, FileText, Eye } from "lucide-react";
+import { Send, Loader2, History, Sparkles, FileText, Eye, GitBranch, ChevronRight } from "lucide-react";
 import {
   getVeritasHistoryStatus,
   getVeritasMessages,
   sendVeritasMessage,
   errorMessage,
 } from "../../lib/api";
-import type { MyDocument, VeritasMessage } from "../../lib/types";
+import type { MyDocument, Relationship, VeritasMessage } from "../../lib/types";
 import DocumentModal from "../DocumentModal";
 
 interface Props {
@@ -15,12 +16,12 @@ interface Props {
   onPending: (pending: boolean) => void;
 }
 
-/** Prompts offered on an empty chat — each maps cleanly to the document_lookup tool. */
+/** Prompts offered on an empty chat — each maps cleanly to a Veritas tool. */
 const SUGGESTIONS = [
   "Show me documents expiring this week",
   "What's expiring in the next 30 days?",
-  "Do I have any fire safety documents?",
-  "Show me my insurance certificates",
+  "What payroll processes do we have?",
+  "Find the PTN for our payments process",
 ];
 
 /** Render light markdown: **bold** and line breaks (the agent replies in prose). */
@@ -76,7 +77,35 @@ function DocCard({ doc, onPreview }: { doc: MyDocument; onPreview: () => void })
   );
 }
 
-/** One message: a bubble, plus document cards for assistant replies. */
+/** A compact process (PTN) card; links to the Processes page filtered by its PTN. */
+function PtnCard({ rel }: { rel: Relationship }) {
+  const processor = rel.processor?.Company_Name?.trim();
+  const fn = rel.functionInfo?.function?.trim();
+  const country = rel.countryInfo?.Name?.trim();
+  const meta = [fn, country, processor].filter(Boolean).join(" · ");
+  return (
+    <Link
+      to={`/processes?search=${encodeURIComponent(rel.PTN_no ?? "")}`}
+      className="group flex w-full items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-left transition hover:border-[#5e90c0] hover:bg-slate-50"
+    >
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#D5E8F0]">
+        <GitBranch size={14} className="text-[#5e90c0]" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-xs font-medium text-[#1d2428]">
+          {rel.desc?.trim() || rel.PTN_no || "Process"}
+        </span>
+        <span className="block truncate text-[10px] text-slate-400">
+          {rel.PTN_no ? `PTN ${rel.PTN_no}` : ""}
+          {meta ? `${rel.PTN_no ? " · " : ""}${meta}` : ""}
+        </span>
+      </span>
+      <ChevronRight size={14} className="shrink-0 text-slate-300 group-hover:text-[#5e90c0]" />
+    </Link>
+  );
+}
+
+/** One message: a bubble, plus document and process cards for assistant replies. */
 function MessageRow({
   message,
   onPreview,
@@ -90,6 +119,11 @@ function MessageRow({
     const seen = new Set<number>();
     return (message.documents ?? []).filter((d) => (seen.has(d.id) ? false : seen.add(d.id)));
   }, [message.documents]);
+  // De-dupe processes by id likewise.
+  const rels = useMemo(() => {
+    const seen = new Set<number>();
+    return (message.relationships ?? []).filter((r) => (seen.has(r.id) ? false : seen.add(r.id)));
+  }, [message.relationships]);
 
   return (
     <div className={`flex flex-col gap-1.5 ${isUser ? "items-end" : "items-start"}`}>
@@ -102,10 +136,13 @@ function MessageRow({
       >
         {renderText(message.content)}
       </div>
-      {docs.length > 0 && (
+      {(docs.length > 0 || rels.length > 0) && (
         <div className="flex w-[85%] flex-col gap-1.5">
           {docs.map((d) => (
-            <DocCard key={d.id} doc={d} onPreview={() => onPreview(d)} />
+            <DocCard key={`d-${d.id}`} doc={d} onPreview={() => onPreview(d)} />
+          ))}
+          {rels.map((r) => (
+            <PtnCard key={`r-${r.id}`} rel={r} />
           ))}
         </div>
       )}
@@ -140,7 +177,10 @@ export default function VeritasChat({ companyId, onPending }: Props) {
   const send = useMutation({
     mutationFn: (message: string) => sendVeritasMessage({ companyId, message }),
     onSuccess: (data) =>
-      setSession((s) => [...s, { ...data.message, documents: data.documents }]),
+      setSession((s) => [
+        ...s,
+        { ...data.message, documents: data.documents, relationships: data.relationships },
+      ]),
   });
 
   useEffect(() => onPending(send.isPending), [send.isPending, onPending]);
@@ -223,7 +263,7 @@ export default function VeritasChat({ companyId, onPending }: Props) {
         {isEmpty && (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-1 text-center">
             <Sparkles size={22} className="text-[#5e90c0] opacity-60" />
-            <p className="text-xs text-slate-400">Ask Veritas about your documents.</p>
+            <p className="text-xs text-slate-400">Ask Veritas about your documents and processes.</p>
             <div className="flex w-full flex-col gap-1.5">
               {SUGGESTIONS.map((s) => (
                 <button

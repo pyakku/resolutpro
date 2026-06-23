@@ -126,6 +126,52 @@ export interface MyDocument {
   [key: string]: unknown;
 }
 
+// ── Processes (relationships) ────────────────────────────────────────────────
+
+/** A company reference expanded inside a relationship (only id + name needed). */
+export interface CompanyRef {
+  id: number;
+  Company_Name?: string | null;
+}
+
+/**
+ * A row from `relationships`, addon-expanded, as returned by GET processes/list.
+ * Each process belongs to a PTN "chain" (rows sharing the same `PTN_no`). The
+ * three company roles: `dataOwner` originates the data, `assignedBy` assigns the
+ * process, `processor` (assigned_to) carries it out.
+ */
+export interface Relationship {
+  id: number;
+  created_at: number;
+  PTN_no: string | null;
+  desc: string | null;
+  approved: boolean | null;
+  terminated: boolean | null;
+  /** PTN this row replaces in its chain (empty when it's the original). */
+  replaces: string | null;
+  /** Service-level agreement file; presence drives the SLA indicator. */
+  sla: XanoFile | null;
+  countryInfo: { id: number; Name?: string | null } | null;
+  functionInfo: { id: number; function?: string | null } | null;
+  dataOwner: CompanyRef | null;
+  assignedBy: CompanyRef | null;
+  processor: CompanyRef | null;
+  [key: string]: unknown;
+}
+
+/**
+ * Xano paged envelope from GET processes/list. Like documents/list, the paging
+ * metadata does NOT include `itemsTotal` — the client lazy-loads via `nextPage`.
+ */
+export interface ProcessesPage {
+  items: Relationship[];
+  itemsReceived: number;
+  curPage: number;
+  nextPage: number | null;
+  prevPage: number | null;
+  pageTotal: number;
+}
+
 // ── Veritas AI assistant ─────────────────────────────────────────────────────
 
 export type VeritasRole = "user" | "assistant";
@@ -138,6 +184,8 @@ export interface VeritasMessage {
   content: string;
   /** Documents surfaced by the assistant's tool calls this turn (assistant rows only). */
   documents?: MyDocument[] | null;
+  /** Processes (PTNs) surfaced by the assistant's tool calls this turn (assistant rows only). */
+  relationships?: Relationship[] | null;
 }
 
 /** Xano paged envelope from GET veritas/messages (newest-first). No itemsTotal. */
@@ -161,6 +209,7 @@ export interface VeritasChatReply {
   reply: string;
   message: VeritasMessage;
   documents: MyDocument[];
+  relationships: Relationship[];
 }
 
 /**
