@@ -1,33 +1,106 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
-import { Send, Loader2, History, Sparkles } from "lucide-react";
+import { Send, Loader2, History, Sparkles, FileText, Eye } from "lucide-react";
 import {
   getVeritasHistoryStatus,
   getVeritasMessages,
   sendVeritasMessage,
   errorMessage,
 } from "../../lib/api";
-import type { VeritasMessage } from "../../lib/types";
+import type { MyDocument, VeritasMessage } from "../../lib/types";
+import DocumentModal from "../DocumentModal";
 
 interface Props {
   companyId: number;
   onPending: (pending: boolean) => void;
 }
 
-/** A single chat bubble. */
-function Bubble({ role, content }: { role: VeritasMessage["role"]; content: string }) {
-  const isUser = role === "user";
+/** Render light markdown: **bold** and line breaks (the agent replies in prose). */
+function renderText(text: string) {
+  return text.split("\n").map((line, li) => (
+    <span key={li}>
+      {li > 0 && <br />}
+      {line.split(/(\*\*[^*]+\*\*)/g).map((seg, si) =>
+        seg.startsWith("**") && seg.endsWith("**") ? (
+          <strong key={si}>{seg.slice(2, -2)}</strong>
+        ) : (
+          <span key={si}>{seg}</span>
+        )
+      )}
+    </span>
+  ));
+}
+
+function fmtExpiry(doc: MyDocument): string {
+  if (doc.noExpiry) return "No expiry";
+  if (!doc.expiryDate) return "—";
+  const d = new Date(doc.expiryDate);
+  const expired = doc.expiryDate < Date.now();
+  return `${expired ? "Expired" : "Expires"} ${d.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  })}`;
+}
+
+/** A compact, clickable document card shown under an assistant reply. */
+function DocCard({ doc, onPreview }: { doc: MyDocument; onPreview: () => void }) {
+  const name = doc.nameUA ?? doc.documentInfo?.documentName ?? doc.file?.name ?? "Untitled document";
+  const type = doc.documentInfo?.typeInfo?.type;
+  const expired = !doc.noExpiry && !!doc.expiryDate && doc.expiryDate < Date.now();
   return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+    <button
+      onClick={onPreview}
+      className="group flex w-full items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-left transition hover:border-[#5e90c0] hover:bg-slate-50"
+    >
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#D5E8F0]">
+        <FileText size={14} className="text-[#5e90c0]" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-xs font-medium text-[#1d2428]">{name}</span>
+        <span className="block truncate text-[10px] text-slate-400">
+          {type ? `${type} · ` : ""}
+          <span className={expired ? "font-semibold text-red-500" : ""}>{fmtExpiry(doc)}</span>
+        </span>
+      </span>
+      <Eye size={14} className="shrink-0 text-slate-300 group-hover:text-[#5e90c0]" />
+    </button>
+  );
+}
+
+/** One message: a bubble, plus document cards for assistant replies. */
+function MessageRow({
+  message,
+  onPreview,
+}: {
+  message: VeritasMessage;
+  onPreview: (doc: MyDocument) => void;
+}) {
+  const isUser = message.role === "user";
+  // De-dupe documents by id (the agent may call the tool more than once).
+  const docs = useMemo(() => {
+    const seen = new Set<number>();
+    return (message.documents ?? []).filter((d) => (seen.has(d.id) ? false : seen.add(d.id)));
+  }, [message.documents]);
+
+  return (
+    <div className={`flex flex-col gap-1.5 ${isUser ? "items-end" : "items-start"}`}>
       <div
-        className={`max-w-[82%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-xs leading-relaxed ${
+        className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-xs leading-relaxed ${
           isUser
             ? "rounded-br-sm bg-[#5e90c0] text-white"
             : "rounded-bl-sm bg-slate-100 text-[#1d2428]"
         }`}
       >
-        {content}
+        {renderText(message.content)}
       </div>
+      {docs.length > 0 && (
+        <div className="flex w-[85%] flex-col gap-1.5">
+          {docs.map((d) => (
+            <DocCard key={d.id} doc={d} onPreview={() => onPreview(d)} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -36,6 +109,7 @@ export default function VeritasChat({ companyId, onPending }: Props) {
   const [input, setInput] = useState("");
   const [session, setSession] = useState<VeritasMessage[]>([]);
   const [historyEnabled, setHistoryEnabled] = useState(false);
+  const [preview, setPreview] = useState<MyDocument | null>(null);
   const sessionStart = useRef(Date.now());
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const topSentinel = useRef<HTMLDivElement | null>(null);
@@ -57,7 +131,8 @@ export default function VeritasChat({ companyId, onPending }: Props) {
 
   const send = useMutation({
     mutationFn: (message: string) => sendVeritasMessage({ companyId, message }),
-    onSuccess: (data) => setSession((s) => [...s, data.message]),
+    onSuccess: (data) =>
+      setSession((s) => [...s, { ...data.message, documents: data.documents }]),
   });
 
   useEffect(() => onPending(send.isPending), [send.isPending, onPending]);
@@ -144,10 +219,10 @@ export default function VeritasChat({ companyId, onPending }: Props) {
         )}
 
         {previous.map((m) => (
-          <Bubble key={`h-${m.id}`} role={m.role} content={m.content} />
+          <MessageRow key={`h-${m.id}`} message={m} onPreview={setPreview} />
         ))}
         {session.map((m) => (
-          <Bubble key={`s-${m.id}`} role={m.role} content={m.content} />
+          <MessageRow key={`s-${m.id}`} message={m} onPreview={setPreview} />
         ))}
 
         {send.isPending && (
@@ -192,6 +267,8 @@ export default function VeritasChat({ companyId, onPending }: Props) {
           </button>
         </div>
       </div>
+
+      {preview && <DocumentModal doc={preview} onClose={() => setPreview(null)} />}
     </div>
   );
 }

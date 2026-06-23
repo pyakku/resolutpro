@@ -132,6 +132,8 @@ export interface VeritasMessage {
   created_at: number;
   role: VeritasRole;
   content: string;
+  /** Documents surfaced by the assistant's tool calls this turn (assistant rows only). */
+  documents?: MyDocument[] | null;
 }
 
 /** Xano paged envelope from GET veritas/messages (newest-first). No itemsTotal. */
@@ -154,6 +156,7 @@ export interface VeritasHistoryStatus {
 export interface VeritasChatReply {
   reply: string;
   message: VeritasMessage;
+  documents: MyDocument[];
 }
 
 /**
