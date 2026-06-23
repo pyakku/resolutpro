@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "xano": {
+      "type": "http",
+      "url": "https://xjno-rqiq-2v6x.n7.xano.io/x2/mcp/meta/mcp/sse",
+      "headers": {
+        "Authorization": "Bearer <YOUR_XANO_METADATA_API_TOKEN>"
+      }
+    }
+  }
+}

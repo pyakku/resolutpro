@@ -66,3 +66,68 @@ export interface CompanyOption {
   active?: boolean | null;
   [key: string]: unknown;
 }
+
+// ── Documents ──────────────────────────────────────────────────────────────────
+
+/** The tab / server-side filter applied to the documents list. */
+export type DocumentStatus =
+  | "all"
+  | "validated"
+  | "rejected"
+  | "expired"
+  | "pending"
+  | "archived";
+
+/** A Xano `attachment` field value. */
+export interface XanoFile {
+  url: string;
+  name?: string | null;
+  /** MIME type, e.g. "application/pdf". May be absent — fall back to the name's extension. */
+  mime?: string | null;
+  type?: string | null;
+  size?: number | null;
+  [key: string]: unknown;
+}
+
+/** A row from `myDocuments`, addon-expanded, as returned by GET documents/list. */
+export interface MyDocument {
+  id: number;
+  nameUA: string | null;
+  /**
+   * The `documents` addon, expanded as `documentInfo` (not `document`, which
+   * would collide with the myDocuments.document FK int column). Its nested
+   * `document_types` addon expands as `typeInfo`.
+   */
+  documentInfo: {
+    id: number;
+    documentName?: string | null;
+    typeInfo?: { id: number; type?: string | null } | null;
+  } | null;
+  file: XanoFile | null;
+  issueDate: number | null;
+  expiryDate: number | null;
+  validationDate: number | null;
+  validated: boolean | null;
+  rejected: boolean | null;
+  archived: boolean | null;
+  noExpiry: boolean | null;
+  issuedBy: string | null;
+  holderContact: { id: number; name?: string | null } | null;
+  validationComments: string | null;
+  [key: string]: unknown;
+}
+
+/**
+ * Xano paged envelope returned by GET documents/list. NOTE: this endpoint's
+ * paging metadata does NOT include `itemsTotal` — the client shows the loaded
+ * count instead and relies on `nextPage` to drive lazy-loading.
+ */
+export interface DocumentsPage {
+  items: MyDocument[];
+  itemsReceived: number;
+  curPage: number;
+  /** Next page number, or null when on the last page. */
+  nextPage: number | null;
+  prevPage: number | null;
+  pageTotal: number;
+}

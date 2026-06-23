@@ -4,6 +4,9 @@ node_modules/
 .env
 .env.*
 
+# Xano MCP config — contains a Metadata API access token. Use .mcp.json.example as a template.
+.mcp.json
+
 # --- Files with hardcoded secrets (OpenAI / Chargebee keys) — DO NOT COMMIT ---
 # Excluded from the public repo. Move these keys to Xano env vars to re-include.
 /apis/billing/416_bill_POST.xs
