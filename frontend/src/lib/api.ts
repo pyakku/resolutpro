@@ -6,6 +6,9 @@ import type {
   DocumentStatus,
   DocumentsPage,
   User,
+  VeritasChatReply,
+  VeritasHistoryStatus,
+  VeritasMessagesPage,
 } from "./types";
 
 // Base URL of the Xano `resolut_apis` API group. Set in frontend/.env.
@@ -110,6 +113,46 @@ export async function getDocuments({
       page,
       per_page: perPage,
     },
+  });
+  return data;
+}
+
+// ── Veritas AI assistant ─────────────────────────────────────────────────────
+
+/** POST veritas/chat — send a message; runs the Veritas agent and returns its reply. */
+export async function sendVeritasMessage(params: {
+  companyId: number;
+  message: string;
+}): Promise<VeritasChatReply> {
+  const { data } = await api.post<VeritasChatReply>("/veritas/chat", {
+    company_id: params.companyId,
+    message: params.message,
+  });
+  return data;
+}
+
+/** GET veritas/messages — one page of the user's chat history (newest-first). */
+export async function getVeritasMessages(params: {
+  companyId: number;
+  page?: number;
+  perPage?: number;
+}): Promise<VeritasMessagesPage> {
+  const { data } = await api.get<VeritasMessagesPage>("/veritas/messages", {
+    params: {
+      company_id: params.companyId,
+      page: params.page ?? 1,
+      per_page: params.perPage ?? 20,
+    },
+  });
+  return data;
+}
+
+/** GET veritas/history_status — whether the user has prior chat history for a company. */
+export async function getVeritasHistoryStatus(
+  companyId: number
+): Promise<VeritasHistoryStatus> {
+  const { data } = await api.get<VeritasHistoryStatus>("/veritas/history_status", {
+    params: { company_id: companyId },
   });
   return data;
 }

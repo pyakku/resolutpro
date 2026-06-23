@@ -43,3 +43,67 @@
     background: transparent;
   }
 }
+
+/* ── Veritas assistant orb: "activated" lighting effects ────────────────────── */
+@keyframes veritas-aura {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0.12;
+  }
+}
+@keyframes veritas-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes veritas-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@keyframes veritas-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.veritas-aura {
+  animation: veritas-aura 2.8s ease-in-out infinite;
+}
+.veritas-aura-fast {
+  animation: veritas-aura 1.1s ease-in-out infinite;
+}
+.veritas-spin-slow {
+  animation: veritas-spin 7s linear infinite;
+}
+.veritas-bob {
+  animation: veritas-bob 4.5s ease-in-out infinite;
+}
+.veritas-panel-in {
+  animation: veritas-panel-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: bottom right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .veritas-aura,
+  .veritas-aura-fast,
+  .veritas-spin-slow,
+  .veritas-bob,
+  .veritas-panel-in {
+    animation: none;
+  }
+}

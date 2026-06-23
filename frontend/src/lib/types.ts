@@ -122,6 +122,40 @@ export interface MyDocument {
   [key: string]: unknown;
 }
 
+// ── Veritas AI assistant ─────────────────────────────────────────────────────
+
+export type VeritasRole = "user" | "assistant";
+
+/** A persisted Veritas chat message (table veritas_messages). */
+export interface VeritasMessage {
+  id: number;
+  created_at: number;
+  role: VeritasRole;
+  content: string;
+}
+
+/** Xano paged envelope from GET veritas/messages (newest-first). No itemsTotal. */
+export interface VeritasMessagesPage {
+  items: VeritasMessage[];
+  itemsReceived: number;
+  curPage: number;
+  nextPage: number | null;
+  prevPage: number | null;
+  pageTotal: number;
+}
+
+/** GET veritas/history_status — whether the user has prior history for a company. */
+export interface VeritasHistoryStatus {
+  hasHistory: boolean;
+  total: number;
+}
+
+/** POST veritas/chat response. */
+export interface VeritasChatReply {
+  reply: string;
+  message: VeritasMessage;
+}
+
 /**
  * Xano paged envelope returned by GET documents/list. NOTE: this endpoint's
  * paging metadata does NOT include `itemsTotal` — the client shows the loaded
