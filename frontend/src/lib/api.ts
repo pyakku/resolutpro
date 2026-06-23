@@ -6,6 +6,7 @@ import type {
   DocumentSortBy,
   DocumentStatus,
   DocumentsPage,
+  ProcessesPage,
   SortDir,
   User,
   VeritasChatReply,
@@ -118,6 +119,37 @@ export async function getDocuments({
       search: search?.trim() || undefined,
       sort_by: sortBy,
       sort_dir: sortDir,
+      page,
+      per_page: perPage,
+    },
+  });
+  return data;
+}
+
+// ── Processes (relationships) ────────────────────────────────────────────────
+
+export interface GetProcessesParams {
+  companyId: number;
+  search?: string;
+  page?: number;
+  perPage?: number;
+}
+
+/**
+ * GET processes/list — one paginated, searchable page of the company's processes
+ * (relationships), sorted by PTN so the client can group rows into PTN chains.
+ * Returns Xano's standard paged envelope.
+ */
+export async function getProcesses({
+  companyId,
+  search,
+  page = 1,
+  perPage = 25,
+}: GetProcessesParams): Promise<ProcessesPage> {
+  const { data } = await api.get<ProcessesPage>("/processes/list", {
+    params: {
+      company_id: companyId,
+      search: search?.trim() || undefined,
       page,
       per_page: perPage,
     },
