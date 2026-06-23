@@ -40,18 +40,29 @@ function fmtDate(ts: number | null): string {
 
 // ── Row ─────────────────────────────────────────────────────────────────────────
 
-function DocRow({ doc, onOpen }: { doc: MyDocument; onOpen: () => void }) {
+function DocRow({
+  doc,
+  companyName,
+  onOpen,
+}: {
+  doc: MyDocument;
+  companyName: string | null;
+  onOpen: () => void;
+}) {
   const status = effectiveStatus(doc);
   const name = doc.nameUA ?? doc.documentInfo?.documentName ?? doc.file?.name ?? "Untitled document";
   const type = doc.documentInfo?.typeInfo?.type ?? "—";
   const isExpired = !doc.noExpiry && !!doc.expiryDate && doc.expiryDate < Date.now();
+  // The holder is the document's contact; with no contact, the company holds it.
+  const holderName = [doc.holderInfo?.name, doc.holderInfo?.l_name].filter(Boolean).join(" ").trim();
+  const holder = holderName || companyName || "—";
 
   return (
     <button
       onClick={onOpen}
       className="grid w-full grid-cols-12 items-center gap-3 border-b border-slate-100 px-4 py-3 text-left transition hover:bg-slate-50"
     >
-      <div className="col-span-5 flex min-w-0 items-center gap-3">
+      <div className="col-span-3 flex min-w-0 items-center gap-3">
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#D5E8F0]">
           <FileText size={15} className="text-[#5e90c0]" />
         </span>
@@ -60,6 +71,7 @@ function DocRow({ doc, onOpen }: { doc: MyDocument; onOpen: () => void }) {
           <p className="truncate text-[11px] text-slate-400">{doc.issuedBy || "—"}</p>
         </div>
       </div>
+      <p className="col-span-2 truncate text-xs text-slate-500">{holder}</p>
       <p className="col-span-2 truncate text-xs text-slate-500">{type}</p>
       <p className="col-span-2 text-xs text-slate-500">{fmtDate(doc.issueDate)}</p>
       <p className={`col-span-2 text-xs ${isExpired ? "font-semibold text-red-600" : "text-slate-500"}`}>
@@ -77,10 +89,11 @@ function DocRow({ doc, onOpen }: { doc: MyDocument; onOpen: () => void }) {
 function RowSkeleton() {
   return (
     <div className="grid grid-cols-12 items-center gap-3 border-b border-slate-100 px-4 py-3">
-      <div className="col-span-5 flex items-center gap-3">
+      <div className="col-span-3 flex items-center gap-3">
         <span className="h-8 w-8 shrink-0 animate-pulse rounded-lg bg-slate-100" />
-        <span className="h-3 w-40 animate-pulse rounded bg-slate-100" />
+        <span className="h-3 w-32 animate-pulse rounded bg-slate-100" />
       </div>
+      <span className="col-span-2 h-3 w-20 animate-pulse rounded bg-slate-100" />
       <span className="col-span-2 h-3 w-16 animate-pulse rounded bg-slate-100" />
       <span className="col-span-2 h-3 w-20 animate-pulse rounded bg-slate-100" />
       <span className="col-span-2 h-3 w-20 animate-pulse rounded bg-slate-100" />
@@ -181,7 +194,8 @@ export default function Documents() {
 
         {/* Column headers */}
         <div className="mt-2 grid grid-cols-12 gap-3 border-b border-slate-200 bg-slate-50 px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-          <span className="col-span-5">Name</span>
+          <span className="col-span-3">Name</span>
+          <span className="col-span-2">Holder</span>
           <span className="col-span-2">Type</span>
           <span className="col-span-2">Issued</span>
           <span className="col-span-2">Expires</span>
@@ -208,7 +222,12 @@ export default function Documents() {
         ) : (
           <div>
             {docs.map((doc) => (
-              <DocRow key={doc.id} doc={doc} onOpen={() => setOpenDoc(doc)} />
+              <DocRow
+                key={doc.id}
+                doc={doc}
+                companyName={company?.Company_Name ?? null}
+                onOpen={() => setOpenDoc(doc)}
+              />
             ))}
             {/* Lazy-load sentinel + spinner */}
             <div ref={sentinel} />

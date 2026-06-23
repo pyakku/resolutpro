@@ -112,7 +112,12 @@ export interface MyDocument {
   archived: boolean | null;
   noExpiry: boolean | null;
   issuedBy: string | null;
-  holderContact: { id: number; name?: string | null } | null;
+  /**
+   * The contacts addon, expanded as `holderInfo` (per-row via the `items.`
+   * prefix). Null when the document has no holder contact — in that case the
+   * holder is the current company.
+   */
+  holderInfo: { name?: string | null; l_name?: string | null } | null;
   validationComments: string | null;
   [key: string]: unknown;
 }
