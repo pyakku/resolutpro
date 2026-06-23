@@ -1,6 +1,12 @@
 import axios, { AxiosError } from "axios";
 import { useAuthStore } from "../store/auth";
-import type { CompanyOption, DashboardStats, User } from "./types";
+import type {
+  CompanyOption,
+  DashboardStats,
+  DocumentStatus,
+  DocumentsPage,
+  User,
+} from "./types";
 
 // Base URL of the Xano `resolut_apis` API group. Set in frontend/.env.
 const BASE_URL = import.meta.env.VITE_XANO_BASE_URL ?? "";
@@ -73,6 +79,37 @@ export async function getCompanies(): Promise<CompanyOption[]> {
 export async function getDashboardStats(companyId: number): Promise<DashboardStats> {
   const { data } = await api.get<DashboardStats>("/dashboard/stats/numbers", {
     params: { company_id: companyId },
+  });
+  return data;
+}
+
+export interface GetDocumentsParams {
+  companyId: number;
+  status: DocumentStatus;
+  search?: string;
+  page?: number;
+  perPage?: number;
+}
+
+/**
+ * GET documents/list — one paginated, searchable page of the company's documents
+ * for the given tab/status. Returns Xano's standard paged envelope.
+ */
+export async function getDocuments({
+  companyId,
+  status,
+  search,
+  page = 1,
+  perPage = 20,
+}: GetDocumentsParams): Promise<DocumentsPage> {
+  const { data } = await api.get<DocumentsPage>("/documents/list", {
+    params: {
+      company_id: companyId,
+      status,
+      search: search?.trim() || undefined,
+      page,
+      per_page: perPage,
+    },
   });
   return data;
 }

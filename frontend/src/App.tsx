@@ -5,6 +5,7 @@ import { useAuthStore } from "./store/auth";
 import Login from "./pages/Login";
 import SelectCompany from "./pages/SelectCompany";
 import Dashboard from "./pages/Dashboard";
+import Documents from "./pages/Documents";
 import ComingSoon from "./pages/ComingSoon";
 
 export default function App() {
@@ -32,7 +33,7 @@ export default function App() {
           {/* Platform Navigation */}
           <Route path="/organisation" element={<ComingSoon />} />
           <Route path="/contacts" element={<ComingSoon />} />
-          <Route path="/documents" element={<ComingSoon />} />
+          <Route path="/documents" element={<Documents />} />
           <Route path="/share-documents" element={<ComingSoon />} />
           <Route path="/product-analysis" element={<ComingSoon />} />
           <Route path="/processes" element={<ComingSoon />} />
