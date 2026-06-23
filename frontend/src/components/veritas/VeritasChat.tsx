@@ -15,6 +15,14 @@ interface Props {
   onPending: (pending: boolean) => void;
 }
 
+/** Prompts offered on an empty chat — each maps cleanly to the document_lookup tool. */
+const SUGGESTIONS = [
+  "Show me documents expiring this week",
+  "What's expiring in the next 30 days?",
+  "Do I have any fire safety documents?",
+  "Show me my insurance certificates",
+];
+
 /** Render light markdown: **bold** and line breaks (the agent replies in prose). */
 function renderText(text: string) {
   return text.split("\n").map((line, li) => (
@@ -164,8 +172,8 @@ export default function VeritasChat({ companyId, onPending }: Props) {
     if (el) el.scrollTop = el.scrollHeight;
   }, [session.length, send.isPending]);
 
-  function submit() {
-    const text = input.trim();
+  function sendMessage(raw: string) {
+    const text = raw.trim();
     if (!text || send.isPending) return;
     setSession((s) => [
       ...s,
@@ -173,6 +181,10 @@ export default function VeritasChat({ companyId, onPending }: Props) {
     ]);
     setInput("");
     send.mutate(text);
+  }
+
+  function submit() {
+    sendMessage(input);
   }
 
   const showLoadAction = status.data?.hasHistory && !historyEnabled;
@@ -208,13 +220,21 @@ export default function VeritasChat({ companyId, onPending }: Props) {
           </>
         )}
 
-        {isEmpty && !showLoadAction && (
-          <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-slate-400">
+        {isEmpty && (
+          <div className="flex h-full flex-col items-center justify-center gap-3 px-1 text-center">
             <Sparkles size={22} className="text-[#5e90c0] opacity-60" />
-            <p className="text-xs">Ask Veritas about your documents.</p>
-            <p className="text-[11px] text-slate-300">
-              e.g. "Do I have a fire safety certificate?" or "What's expiring in 5 days?"
-            </p>
+            <p className="text-xs text-slate-400">Ask Veritas about your documents.</p>
+            <div className="flex w-full flex-col gap-1.5">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => sendMessage(s)}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-xs text-[#1d2428] transition hover:border-[#5e90c0] hover:bg-slate-50"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
