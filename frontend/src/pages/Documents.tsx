@@ -44,6 +44,7 @@ function DocRow({ doc, onOpen }: { doc: MyDocument; onOpen: () => void }) {
   const status = effectiveStatus(doc);
   const name = doc.nameUA ?? doc.documentInfo?.documentName ?? doc.file?.name ?? "Untitled document";
   const type = doc.documentInfo?.typeInfo?.type ?? "—";
+  const isExpired = !doc.noExpiry && !!doc.expiryDate && doc.expiryDate < Date.now();
 
   return (
     <button
@@ -61,7 +62,9 @@ function DocRow({ doc, onOpen }: { doc: MyDocument; onOpen: () => void }) {
       </div>
       <p className="col-span-2 truncate text-xs text-slate-500">{type}</p>
       <p className="col-span-2 text-xs text-slate-500">{fmtDate(doc.issueDate)}</p>
-      <p className="col-span-2 text-xs text-slate-500">{doc.noExpiry ? "No expiry" : fmtDate(doc.expiryDate)}</p>
+      <p className={`col-span-2 text-xs ${isExpired ? "font-semibold text-red-600" : "text-slate-500"}`}>
+        {doc.noExpiry ? "No expiry" : fmtDate(doc.expiryDate)}
+      </p>
       <div className="col-span-1 flex justify-end">
         <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${status.cls}`}>
           {status.label}
